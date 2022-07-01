@@ -1,8 +1,13 @@
 import uvicorn
+import time
 from fastapi import FastAPI
-from . import routers
+from . import routers, database
 
 app = FastAPI()
+
+@app.on_event("startup")
+def on_startup():
+    database.init_db()
 
 
 api_routers = [

@@ -1,5 +1,4 @@
-from sqlalchemy.orm import Session, Query
-from sqlalchemy import insert, update, delete, sql
+from sqlalchemy import insert, update, delete, sql, orm
 from . import models, schemas
 
 
@@ -7,12 +6,12 @@ class UserAction:
     """Class with actions with user."""
 
     @staticmethod
-    def get_user(db: Session, id: int) -> Query:
+    def get_user(db: orm.Session, id: int) -> orm.Query:
         """Get query of user with current id."""
         return db.query(models.User).filter(models.User.id == id)
 
     @staticmethod
-    def get_users(db: Session) -> Query:
+    def get_users(db: orm.Session) -> orm.Query:
         """Get query of all users."""
         return db.query(models.User)
 

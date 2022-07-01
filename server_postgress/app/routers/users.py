@@ -1,3 +1,4 @@
+import time
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -13,11 +14,14 @@ OK_CODE = 200
 @router.get("/{id}/")
 def read_user(id: int, db: Session = Depends(get_db)) -> User:
     """View-controller for return user with current id."""
+    start_time = time.time()
     user = UserAction.get_user(db, id)
+    end_time = time.time() - start_time
     if user:
         return {
             "response": user.first(),
             "query": sql_query(user),
+            "time": end_time,
         }
     raise HTTPException(
         status_code=404,
@@ -28,11 +32,14 @@ def read_user(id: int, db: Session = Depends(get_db)) -> User:
 @router.get("/")
 def read_users(db: Session = Depends(get_db)) -> User:
     """View-controller for return all users."""
+    start_time = time.time()
     users = UserAction.get_users(db)
-    if users:
+    end_time = time.time() - start_time
+    if users.count():
         return {
             "response": users.all(),
             "query": sql_query(users),
+            "time": end_time,
         }
     raise HTTPException(
         status_code=404,
@@ -42,27 +49,33 @@ def read_users(db: Session = Depends(get_db)) -> User:
 @router.post("/")
 def create_users(user: UserCreate) -> JSONResponse:
     """View-controller for create user."""
+    start_time = time.time()
     query = UserAction.create_user(user)
     engine.execute(query)
+    end_time = time.time() - start_time
     return JSONResponse(
         status_code=SUCCESS_CREATED_CODE,
         content={
             "reponse": "User created",
             "query": sql_query(query),
+            "time": end_time,
         },
     )
-    
+
 
 @router.put("/{id}/")
 def update_users(id: int, user: UserCreate) -> JSONResponse:
     """View-controller for update user with current id."""
+    start_time = time.time()
     query = UserAction.update_user(user, id)
     engine.execute(query)
+    end_time = time.time() - start_time
     return JSONResponse(
         status_code=OK_CODE,
         content={
             "response": "User updated",
             "query": sql_query(query),
+            "time": end_time,
         },
     )
 
@@ -70,12 +83,15 @@ def update_users(id: int, user: UserCreate) -> JSONResponse:
 @router.delete("/{id}/")
 def delete_users(id: int) -> JSONResponse:
     """View-controller for delete user with current id."""
+    start_time = time.time()
     query = UserAction.delete_user(id)
     engine.execute(query)
+    end_time = time.time() - start_time
     return JSONResponse(
         status_code=OK_CODE,
         content={
             "detail": "User deleted",
             "query": sql_query(query),
+            "time": end_time,
         },
     )

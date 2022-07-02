@@ -6,6 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONBUFFERED 1
 
 COPY pyproject.toml .
+COPY wait-for-it.sh .
+RUN chmod +x ./wait-for-it.sh
 RUN pip install poetry
 RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
 

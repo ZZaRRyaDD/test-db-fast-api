@@ -1,6 +1,7 @@
 import time
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from app.database import get_db, User, UserCreate, UserAction, engine
 from app.services import sql_query
@@ -47,16 +48,19 @@ def read_users(db: Session = Depends(get_db)) -> User:
     )
 
 @router.post("/")
-def create_users(user: UserCreate) -> JSONResponse:
+def create_users(
+    user: UserCreate,
+    db: Session = Depends(get_db),
+) -> JSONResponse:
     """View-controller for create user."""
-    start_time = time.time()
     query = UserAction.create_user(user)
+    start_time = time.time()
     engine.execute(query)
     end_time = time.time() - start_time
     return JSONResponse(
         status_code=SUCCESS_CREATED_CODE,
         content={
-            "reponse": "User created",
+            "reponse": jsonable_encoder(UserAction.get_last_user(db)),
             "query": sql_query(query),
             "time": end_time,
         },
@@ -64,16 +68,20 @@ def create_users(user: UserCreate) -> JSONResponse:
 
 
 @router.put("/{id}/")
-def update_users(id: int, user: UserCreate) -> JSONResponse:
+def update_users(
+    id: int,
+    user: UserCreate,
+    db: Session = Depends(get_db),
+) -> JSONResponse:
     """View-controller for update user with current id."""
-    start_time = time.time()
     query = UserAction.update_user(user, id)
+    start_time = time.time()
     engine.execute(query)
     end_time = time.time() - start_time
     return JSONResponse(
         status_code=OK_CODE,
         content={
-            "response": "User updated",
+            "reponse": jsonable_encoder(UserAction.get_user(db, id).first()),
             "query": sql_query(query),
             "time": end_time,
         },
@@ -83,8 +91,8 @@ def update_users(id: int, user: UserCreate) -> JSONResponse:
 @router.delete("/{id}/")
 def delete_users(id: int) -> JSONResponse:
     """View-controller for delete user with current id."""
-    start_time = time.time()
     query = UserAction.delete_user(id)
+    start_time = time.time()
     engine.execute(query)
     end_time = time.time() - start_time
     return JSONResponse(

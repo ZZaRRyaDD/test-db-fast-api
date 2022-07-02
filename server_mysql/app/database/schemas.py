@@ -6,7 +6,6 @@ class UserBase(BaseModel):
     """Base schema for user."""
     name: str
     surname: str
-    patronymic: str
     phone: str
     email: EmailStr
     passport_id: str

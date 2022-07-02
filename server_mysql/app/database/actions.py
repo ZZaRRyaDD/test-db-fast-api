@@ -1,4 +1,4 @@
-from sqlalchemy import insert, update, delete, sql, orm
+from sqlalchemy import insert, update, delete, sql, orm, desc
 from . import models, schemas
 
 
@@ -9,6 +9,11 @@ class UserAction:
     def get_user(db: orm.Session, id: int) -> orm.Query:
         """Get query of user with current id."""
         return db.query(models.User).filter(models.User.id == id)
+
+    @staticmethod
+    def get_last_user(db: orm.Session) -> models.User:
+        """Get last created user."""
+        return db.query(models.User).order_by(desc(models.User.id)).first()
 
     @staticmethod
     def get_users(db: orm.Session) -> orm.Query:

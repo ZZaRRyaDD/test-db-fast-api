@@ -1,5 +1,5 @@
+from database import engine
 import sqlalchemy
-from app.database import engine
 
 
 def sql_query(query) -> str:

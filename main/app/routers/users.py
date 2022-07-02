@@ -3,8 +3,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
-from app.database import get_db, User, UserCreate, UserAction, engine
-from app.services import sql_query
+from database import get_db, User, UserCreate, UserAction, engine
+from services import sql_query
 
 router = APIRouter(prefix="/users", tags=["users"])
 

@@ -47,11 +47,12 @@ def generate_results(info: dict) -> None:
     width = 0.5
     ax.bar(count_bars + 0.00, postgresql_time, width, color='r')
     ax.bar(count_bars + 0.25, mysql_time, width, color='b')
-    ax.set_ylabel('Time')
+    ax.set_ylabel("Time")
+    ax.set_title("Comparison time of CRUD actions with MySQL and PostgreSQL")
     labels = [key for key, _ in postgresql.items()]
     ax.set_xticks(ticks=range(len(labels)), labels=labels)
-    ax.legend(labels=['PostgreSQL', 'MySQL'])
-    plt.savefig("results.png", bbox_inches='tight')
+    ax.legend(labels=["PostgreSQL", "MySQL"], loc="upper center")
+    plt.savefig("results.png", bbox_inches="tight")
 
 
 def set_results(
@@ -202,9 +203,7 @@ def main() -> None:
     }
     for db in info:
         port = PORT_SERVER_MYSQL if db == 'mysql' else PORT_SERVER_POSTGRESQL
-        url = (
-            f"http://0.0.0.0:{port}/users/"
-        )
+        url = f"http://0.0.0.0:{port}/users/"
         for user in users:
             user.passport_id = str(user.passport_id)
             user.passport_series = str(user.passport_series)

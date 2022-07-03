@@ -1,7 +1,9 @@
+import os
+
+import database
+import routers
 import uvicorn
 from fastapi import FastAPI
-import routers, database
-import os
 
 app = FastAPI()
 

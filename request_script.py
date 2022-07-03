@@ -1,6 +1,11 @@
-import requests
-import factories
 import json
+import random
+
+import matplotlib.pyplot as plt
+import numpy as np
+import requests
+
+import factories
 
 USERS_COUNT = 100
 PORT_SERVER_MYSQL = 8080
@@ -9,7 +14,44 @@ PORT_SERVER_POSTGRESQL = 8000
 
 def generate_results(info: dict) -> None:
     """Calculate times and query to db and build graphics."""
-    print(info)
+    for db in info:
+        print(f"Database: {db}")
+        for key, value in info[db].items():
+            value["results"]["average_time"] = (
+                np.array(value["timings"]).mean()
+            )
+            value["results"]["query"] = value["clean_queries"]
+            value["results"]["example_query"] = value["queries"][
+                random.randint(0, len(value["queries"]) - 1)
+            ]
+            print(f"{key}:")
+            print(f"\tAverage time: {value['results']['average_time']}")
+            print(f"\tTemplate query: {value['results']['query']}")
+            print(f"\tExample query: {value['results']['example_query']}")
+        print()
+    postgresql = dict(
+        [(key, value["results"]) for key, value in info["postgresql"].items()]
+    )
+    mysql = dict(
+        [(key, value["results"]) for key, value in info["mysql"].items()]
+    )
+    postgresql_time = [
+        value["average_time"] for _, value in postgresql.items()
+    ]
+    mysql_time = [
+        value["average_time"] for _, value in mysql.items()
+    ]
+    fig = plt.figure()
+    ax = fig.add_axes([0, 0, 1, 1])
+    count_bars = np.arange(5)
+    width = 0.5
+    ax.bar(count_bars + 0.00, postgresql_time, width, color='r')
+    ax.bar(count_bars + 0.25, mysql_time, width, color='b')
+    ax.set_ylabel('Time')
+    labels = [key for key, _ in postgresql.items()]
+    ax.set_xticks(ticks=range(len(labels)), labels=labels)
+    ax.legend(labels=['PostgreSQL', 'MySQL'])
+    plt.savefig("results.png", bbox_inches='tight')
 
 
 def set_results(
@@ -21,6 +63,7 @@ def set_results(
     """Take results and set values."""
     response = json.loads(response._content)
     info[db][action]["queries"].append(response["query"])
+    info[db][action]["clean_queries"] = response["clean_query"]
     info[db][action]["timings"].append(response["time"])
 
 
@@ -53,94 +96,115 @@ def main() -> None:
     users = generate_data()
     info = {
         "mysql": {
-            "port": PORT_SERVER_MYSQL,
             "create_item": {
                 "queries": [],
+                "clean_queries": "",
                 "timings": [],
                 "results": {
                     "query": "",
+                    "example_query": "",
                     "average_time": 0,
                 }
             },
             "get_item": {
                 "queries": [],
+                "clean_queries": "",
                 "timings": [],
                 "results": {
                     "query": "",
+                    "example_query": "",
                     "average_time": 0,
                 }
             },
             "get_items": {
                 "queries": [],
+                "clean_queries": "",
                 "timings": [],
                 "results": {
                     "query": "",
+                    "example_query": "",
                     "average_time": 0,
                 }
             },
             "update_item": {
                 "queries": [],
+                "clean_queries": "",
                 "timings": [],
                 "results": {
                     "query": "",
+                    "example_query": "",
                     "average_time": 0,
                 }
             },
             "delete_item": {
                 "queries": [],
+                "clean_queries": "",
                 "timings": [],
                 "results": {
                     "query": "",
+                    "example_query": "",
                     "average_time": 0,
                 }
             },
         },
         "postgresql": {
-            "port": PORT_SERVER_POSTGRESQL,
             "create_item": {
                 "queries": [],
+                "clean_queries": "",
                 "timings": [],
                 "results": {
                     "query": "",
+                    "example_query": "",
                     "average_time": 0,
                 }
             },
             "get_item": {
                 "queries": [],
+                "clean_queries": "",
                 "timings": [],
                 "results": {
                     "query": "",
+                    "example_query": "",
                     "average_time": 0,
                 }
             },
             "get_items": {
                 "queries": [],
+                "clean_queries": "",
                 "timings": [],
                 "results": {
                     "query": "",
+                    "example_query": "",
                     "average_time": 0,
                 }
             },
             "update_item": {
                 "queries": [],
+                "clean_queries": "",
                 "timings": [],
                 "results": {
                     "query": "",
+                    "example_query": "",
                     "average_time": 0,
                 }
             },
             "delete_item": {
                 "queries": [],
+                "clean_queries": "",
                 "timings": [],
                 "results": {
                     "query": "",
+                    "example_query": "",
                     "average_time": 0,
                 }
             },
         }
     }
     for db in info:
-        url = f"http://0.0.0.0:{info[db]['port']}/users/"
+        port = PORT_SERVER_MYSQL if db == 'mysql' else PORT_SERVER_POSTGRESQL
+        url = (
+            f"http://0.0.0.0:{port}/users/"
+        )
         for user in users:
             user.passport_id = str(user.passport_id)
             user.passport_series = str(user.passport_series)

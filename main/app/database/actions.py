@@ -1,4 +1,5 @@
-from sqlalchemy import insert, update, delete, sql, orm, desc
+from sqlalchemy import delete, desc, insert, orm, sql, update
+
 from . import models, schemas
 
 

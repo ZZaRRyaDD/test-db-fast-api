@@ -1,10 +1,11 @@
 import time
-from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import JSONResponse
+
+from database import User, UserAction, UserCreate, engine, get_db
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy.orm import Session
-from database import get_db, User, UserCreate, UserAction, engine
+from fastapi.responses import JSONResponse
 from services import sql_query
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -22,6 +23,7 @@ def read_user(id: int, db: Session = Depends(get_db)) -> User:
         return {
             "response": user.first(),
             "query": sql_query(user),
+            "clean_query": sql_query(user, literal_binds=False),
             "time": end_time,
         }
     raise HTTPException(
@@ -40,6 +42,7 @@ def read_users(db: Session = Depends(get_db)) -> User:
         return {
             "response": users.all(),
             "query": sql_query(users),
+            "clean_query": sql_query(users, literal_binds=False),
             "time": end_time,
         }
     raise HTTPException(
@@ -62,6 +65,7 @@ def create_users(
         content={
             "reponse": jsonable_encoder(UserAction.get_last_user(db)),
             "query": sql_query(query),
+            "clean_query": sql_query(query, literal_binds=False),
             "time": end_time,
         },
     )
@@ -83,6 +87,7 @@ def update_users(
         content={
             "reponse": jsonable_encoder(UserAction.get_user(db, id).first()),
             "query": sql_query(query),
+            "clean_query": sql_query(query, literal_binds=False),
             "time": end_time,
         },
     )
@@ -100,6 +105,7 @@ def delete_users(id: int) -> JSONResponse:
         content={
             "detail": "User deleted",
             "query": sql_query(query),
+            "clean_query": sql_query(query, literal_binds=False),
             "time": end_time,
         },
     )

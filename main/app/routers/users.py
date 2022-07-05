@@ -1,11 +1,10 @@
 import time
 
-from database import User, UserAction, UserCreate, engine, get_db
-from fastapi import APIRouter, Depends, HTTPException
+from database import User, UserAction, UserCreate, engine
+from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from services import sql_query
-from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -14,47 +13,37 @@ OK_CODE = 200
 
 
 @router.get("/{id}/")
-def read_user(id: int, db: Session = Depends(get_db)) -> User:
+def read_user(id: int) -> User:
     """View-controller for return user with current id."""
+    query = UserAction.get_user(id)
     start_time = time.time()
-    user = UserAction.get_user(db, id)
+    user = engine.execute(query)
     end_time = time.time() - start_time
-    if user:
-        return {
-            "response": user.first(),
-            "query": sql_query(user),
-            "clean_query": sql_query(user, literal_binds=False),
-            "time": end_time,
-        }
-    raise HTTPException(
-        status_code=404,
-        detail="User with this id don't exists",
-    )
+    return {
+        "response": user.mappings().first(),
+        "query": sql_query(query),
+        "clean_query": sql_query(query, literal_binds=False),
+        "time": end_time,
+    }
 
 
 @router.get("/")
-def read_users(db: Session = Depends(get_db)) -> User:
+def read_users() -> User:
     """View-controller for return all users."""
+    query = UserAction.get_users()
     start_time = time.time()
-    users = UserAction.get_users(db)
+    users = engine.execute(query)
     end_time = time.time() - start_time
-    if users.count():
-        return {
-            "response": users.all(),
-            "query": sql_query(users),
-            "clean_query": sql_query(users, literal_binds=False),
-            "time": end_time,
-        }
-    raise HTTPException(
-        status_code=404,
-        detail="Users don't exist",
-    )
+    return {
+        "response": users.mappings().all(),
+        "query": sql_query(query),
+        "clean_query": sql_query(query, literal_binds=False),
+        "time": end_time,
+    }
+
 
 @router.post("/")
-def create_users(
-    user: UserCreate,
-    db: Session = Depends(get_db),
-) -> JSONResponse:
+def create_users(user: UserCreate) -> JSONResponse:
     """View-controller for create user."""
     query = UserAction.create_user(user)
     start_time = time.time()
@@ -63,7 +52,9 @@ def create_users(
     return JSONResponse(
         status_code=SUCCESS_CREATED_CODE,
         content={
-            "reponse": jsonable_encoder(UserAction.get_last_user(db)),
+            "response": jsonable_encoder(
+                engine.execute(UserAction.get_last_user()).mappings().first()
+            ),
             "query": sql_query(query),
             "clean_query": sql_query(query, literal_binds=False),
             "time": end_time,
@@ -72,11 +63,7 @@ def create_users(
 
 
 @router.put("/{id}/")
-def update_users(
-    id: int,
-    user: UserCreate,
-    db: Session = Depends(get_db),
-) -> JSONResponse:
+def update_users(id: int, user: UserCreate) -> JSONResponse:
     """View-controller for update user with current id."""
     query = UserAction.update_user(user, id)
     start_time = time.time()
@@ -85,7 +72,9 @@ def update_users(
     return JSONResponse(
         status_code=OK_CODE,
         content={
-            "reponse": jsonable_encoder(UserAction.get_user(db, id).first()),
+            "response": jsonable_encoder(
+                engine.execute(UserAction.get_user(id)).mappings().first()
+            ),
             "query": sql_query(query),
             "clean_query": sql_query(query, literal_binds=False),
             "time": end_time,
@@ -103,7 +92,7 @@ def delete_users(id: int) -> JSONResponse:
     return JSONResponse(
         status_code=OK_CODE,
         content={
-            "detail": "User deleted",
+            "response": "User deleted",
             "query": sql_query(query),
             "clean_query": sql_query(query, literal_binds=False),
             "time": end_time,

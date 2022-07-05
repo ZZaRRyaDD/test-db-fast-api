@@ -1,4 +1,0 @@
-#!/bin/bash
-
-docker-compose -f ./main/servers_dbs.yml down -v
-docker-compose -f ./main/servers_dbs.yml up --build

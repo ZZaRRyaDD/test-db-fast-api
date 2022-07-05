@@ -22,6 +22,6 @@ class User(UserBase):
     """Main schema for read user."""
     id: int
     created_at: datetime
-    
+
     class Config:
         orm_mode = True

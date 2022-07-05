@@ -1,15 +1,14 @@
 import json
 import random
 
+import factories
 import matplotlib.pyplot as plt
 import numpy as np
 import requests
 
-import factories
-
 USERS_COUNT = 100
-PORT_SERVER_MYSQL = 8080
-PORT_SERVER_POSTGRESQL = 8000
+DOMAIN_SERVER_MYSQL = "web_1:8080"
+DOMAIN_SERVER_POSTGRESQL = "web_2:8000"
 
 
 def generate_results(info: dict) -> None:
@@ -17,15 +16,16 @@ def generate_results(info: dict) -> None:
     for db in info:
         print(f"Database: {db}")
         for key, value in info[db].items():
-            value["results"]["average_time"] = (
-                np.array(value["timings"]).mean()
-            )
+            timings = np.array(value["timings"])
+            value["results"]["average_time"] = timings.mean()
+            value["results"]["dispersion"] = np.var(timings)
             value["results"]["query"] = value["clean_queries"]
             value["results"]["example_query"] = value["queries"][
                 random.randint(0, len(value["queries"]) - 1)
             ]
             print(f"{key}:")
-            print(f"\tAverage time: {value['results']['average_time']}")
+            print(f"\tAverage time: {value['results']['average_time']:.8f} sec.")
+            print(f"\tDispersion: {value['results']['dispersion']:.8f} sec.")
             print(f"\tTemplate query: {value['results']['query']}")
             print(f"\tExample query: {value['results']['example_query']}")
         print()
@@ -35,24 +35,28 @@ def generate_results(info: dict) -> None:
     mysql = dict(
         [(key, value["results"]) for key, value in info["mysql"].items()]
     )
-    postgresql_time = [
-        value["average_time"] for _, value in postgresql.items()
-    ]
-    mysql_time = [
-        value["average_time"] for _, value in mysql.items()
-    ]
-    fig = plt.figure()
-    ax = fig.add_axes([0, 0, 1, 1])
-    count_bars = np.arange(5)
-    width = 0.5
-    ax.bar(count_bars + 0.00, postgresql_time, width, color='r')
-    ax.bar(count_bars + 0.25, mysql_time, width, color='b')
-    ax.set_ylabel("Time")
-    ax.set_title("Comparison time of CRUD actions with MySQL and PostgreSQL")
-    labels = [key for key, _ in postgresql.items()]
-    ax.set_xticks(ticks=range(len(labels)), labels=labels)
-    ax.legend(labels=["PostgreSQL", "MySQL"], loc="upper center")
-    plt.savefig("results.png", bbox_inches="tight")
+    for choise in ["average_time", "dispersion"]:
+        postgresql_time = [
+            value[choise] for _, value in postgresql.items()
+        ]
+        mysql_time = [
+            value[choise] for _, value in mysql.items()
+        ]
+        fig = plt.figure()
+        ax = fig.add_axes([0, 0, 1, 1])
+        count_bars = np.arange(5)
+        width = 0.5
+        ax.bar(count_bars + 0.00, postgresql_time, width, color='r')
+        ax.bar(count_bars + 0.25, mysql_time, width, color='b')
+        title_choise = ' '.join(choise.split('_'))
+        ax.set_ylabel("Time (sec)")
+        ax.set_title(
+            f"Comparison speed of CRUD actions with MySQL and PostgreSQL by {title_choise}"
+        )
+        labels = [key for key, _ in postgresql.items()]
+        ax.set_xticks(ticks=range(len(labels)), labels=labels)
+        ax.legend(labels=["PostgreSQL", "MySQL"], loc="upper center")
+        plt.savefig(f"results/results_{choise}.png", bbox_inches="tight")
 
 
 def set_results(
@@ -105,6 +109,7 @@ def main() -> None:
                     "query": "",
                     "example_query": "",
                     "average_time": 0,
+                    "dispersion": 0,
                 }
             },
             "get_item": {
@@ -115,6 +120,7 @@ def main() -> None:
                     "query": "",
                     "example_query": "",
                     "average_time": 0,
+                    "dispersion": 0,
                 }
             },
             "get_items": {
@@ -125,6 +131,7 @@ def main() -> None:
                     "query": "",
                     "example_query": "",
                     "average_time": 0,
+                    "dispersion": 0,
                 }
             },
             "update_item": {
@@ -135,6 +142,7 @@ def main() -> None:
                     "query": "",
                     "example_query": "",
                     "average_time": 0,
+                    "dispersion": 0,
                 }
             },
             "delete_item": {
@@ -145,6 +153,7 @@ def main() -> None:
                     "query": "",
                     "example_query": "",
                     "average_time": 0,
+                    "dispersion": 0,
                 }
             },
         },
@@ -157,6 +166,7 @@ def main() -> None:
                     "query": "",
                     "example_query": "",
                     "average_time": 0,
+                    "dispersion": 0,
                 }
             },
             "get_item": {
@@ -167,6 +177,7 @@ def main() -> None:
                     "query": "",
                     "example_query": "",
                     "average_time": 0,
+                    "dispersion": 0,
                 }
             },
             "get_items": {
@@ -177,6 +188,7 @@ def main() -> None:
                     "query": "",
                     "example_query": "",
                     "average_time": 0,
+                    "dispersion": 0,
                 }
             },
             "update_item": {
@@ -187,6 +199,7 @@ def main() -> None:
                     "query": "",
                     "example_query": "",
                     "average_time": 0,
+                    "dispersion": 0,
                 }
             },
             "delete_item": {
@@ -197,13 +210,18 @@ def main() -> None:
                     "query": "",
                     "example_query": "",
                     "average_time": 0,
+                    "dispersion": 0,
                 }
             },
         }
     }
     for db in info:
-        port = PORT_SERVER_MYSQL if db == 'mysql' else PORT_SERVER_POSTGRESQL
-        url = f"http://0.0.0.0:{port}/users/"
+        domain = (
+            DOMAIN_SERVER_MYSQL
+            if db == 'mysql'
+            else DOMAIN_SERVER_POSTGRESQL
+        )
+        url = f"http://{domain}/users/"
         for user in users:
             user.passport_id = str(user.passport_id)
             user.passport_series = str(user.passport_series)

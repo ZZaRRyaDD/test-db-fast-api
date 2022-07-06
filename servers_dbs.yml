@@ -49,6 +49,7 @@ services:
       - PORT=8000
     depends_on:
       - db_2
+
   db_2:
     container_name: postgresql
     image: postgres:14.4

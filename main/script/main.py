@@ -24,7 +24,9 @@ def generate_results(info: dict) -> None:
                 random.randint(0, len(value["queries"]) - 1)
             ]
             print(f"{key}:")
-            print(f"\tAverage time: {value['results']['average_time']:.8f} sec.")
+            print(
+                f"\tAverage time: {value['results']['average_time']:.8f} sec."
+            )
             print(f"\tDispersion: {value['results']['dispersion']:.8f} sec.")
             print(f"\tTemplate query: {value['results']['query']}")
             print(f"\tExample query: {value['results']['example_query']}")
@@ -36,22 +38,21 @@ def generate_results(info: dict) -> None:
         [(key, value["results"]) for key, value in info["mysql"].items()]
     )
     for choise in ["average_time", "dispersion"]:
-        postgresql_time = [
-            value[choise] for _, value in postgresql.items()
-        ]
-        mysql_time = [
-            value[choise] for _, value in mysql.items()
-        ]
+        postgresql_time = [value[choise] for _, value in postgresql.items()]
+        mysql_time = [value[choise] for _, value in mysql.items()]
         fig = plt.figure()
         ax = fig.add_axes([0, 0, 1, 1])
         count_bars = np.arange(5)
         width = 0.5
-        ax.bar(count_bars + 0.00, postgresql_time, width, color='r')
-        ax.bar(count_bars + 0.25, mysql_time, width, color='b')
-        title_choise = ' '.join(choise.split('_'))
+        ax.bar(count_bars + 0.00, postgresql_time, width, color="r")
+        ax.bar(count_bars + 0.25, mysql_time, width, color="b")
+        title_choise = " ".join(choise.split("_"))
+        title_graphic = (
+            "Comparison speed of CRUD actions with MySQL and PostgreSQL by {}"
+        )
         ax.set_ylabel("Time (sec)")
         ax.set_title(
-            f"Comparison speed of CRUD actions with MySQL and PostgreSQL by {title_choise}"
+            title_graphic.format(title_choise)
         )
         labels = [key for key, _ in postgresql.items()]
         ax.set_xticks(ticks=range(len(labels)), labels=labels)
@@ -110,7 +111,7 @@ def main() -> None:
                     "example_query": "",
                     "average_time": 0,
                     "dispersion": 0,
-                }
+                },
             },
             "get_item": {
                 "queries": [],
@@ -121,7 +122,7 @@ def main() -> None:
                     "example_query": "",
                     "average_time": 0,
                     "dispersion": 0,
-                }
+                },
             },
             "get_items": {
                 "queries": [],
@@ -132,7 +133,7 @@ def main() -> None:
                     "example_query": "",
                     "average_time": 0,
                     "dispersion": 0,
-                }
+                },
             },
             "update_item": {
                 "queries": [],
@@ -143,7 +144,7 @@ def main() -> None:
                     "example_query": "",
                     "average_time": 0,
                     "dispersion": 0,
-                }
+                },
             },
             "delete_item": {
                 "queries": [],
@@ -154,7 +155,7 @@ def main() -> None:
                     "example_query": "",
                     "average_time": 0,
                     "dispersion": 0,
-                }
+                },
             },
         },
         "postgresql": {
@@ -167,7 +168,7 @@ def main() -> None:
                     "example_query": "",
                     "average_time": 0,
                     "dispersion": 0,
-                }
+                },
             },
             "get_item": {
                 "queries": [],
@@ -178,7 +179,7 @@ def main() -> None:
                     "example_query": "",
                     "average_time": 0,
                     "dispersion": 0,
-                }
+                },
             },
             "get_items": {
                 "queries": [],
@@ -189,7 +190,7 @@ def main() -> None:
                     "example_query": "",
                     "average_time": 0,
                     "dispersion": 0,
-                }
+                },
             },
             "update_item": {
                 "queries": [],
@@ -200,7 +201,7 @@ def main() -> None:
                     "example_query": "",
                     "average_time": 0,
                     "dispersion": 0,
-                }
+                },
             },
             "delete_item": {
                 "queries": [],
@@ -211,9 +212,9 @@ def main() -> None:
                     "example_query": "",
                     "average_time": 0,
                     "dispersion": 0,
-                }
+                },
             },
-        }
+        },
     }
     for db in info:
         domain = (
